@@ -291,7 +291,7 @@ class StockChart extends React.Component {
                 timeInterval = 60000
                 break
             case 1:
-                timeInterval = 18000
+                timeInterval = 180000
                 time = 3
                 break
             case 2:
@@ -302,7 +302,7 @@ class StockChart extends React.Component {
         this.timeType = 'minutes'
         this.formater = 'HH:mm'
         this.time = time
-        this.zoom = this.zoom ?? { scaleX: 3, scaleY: 1, xValue: this.getIndexOfSeconds(today) - 5, yValue: 0, axisDependency: 'RIGHT' }
+        this.zoom = this.zoom ?? { scaleX: 2, scaleY: 1, xValue: this.getIndexOfSeconds(today) - 5, yValue: 0, axisDependency: 'RIGHT' }
 
         await this.setState({
             ...this.state,
