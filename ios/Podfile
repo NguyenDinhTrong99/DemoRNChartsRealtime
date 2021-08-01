@@ -3,6 +3,8 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 
 platform :ios, '10.0'
 
+pod 'RNCharts', :path => '../node_modules/react-native-charts-wrapper'
+
 target 'DemoChartReal' do
   config = use_native_modules!
 
