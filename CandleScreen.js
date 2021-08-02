@@ -35,12 +35,13 @@ const CandleScreen = () => {
         valueFormatterPattern: 'HH:mm',
         since: moment().valueOf(),
         timeUnit: 'MINUTES',
-        textColor:  processColor('white')
+        textColor: processColor('white'),
     })
     const [yAxis, setYAxis] = useState({
-        left: { enabled: true
+        left: {
+            enabled: true
         },
-        right: { textColor: processColor('white')},
+        right: { textColor: processColor('white') },
     })
 
     const refChart = useRef()
@@ -48,23 +49,17 @@ const CandleScreen = () => {
     const xMin = useRef()
     const isLoading = useRef(false)
     const stateZoom = useRef(undefined)
-
-    /*
+    const isScrolling = useRef(false)
 
     useEffect(() => {
         const interval = setInterval(() => {
-
-            // let shadowH = Math.random() * (94 - 90) + 90
-            // let close = Math.random() * (92 - 90) + 90
-            let shadowH = Math.random() * (101 - 98) + 98
-            let close = Math.random() * (100 - 99) + 99
-
-            // var values = [...data.dataSets[0].values]
-            // values[values.length - 1] = itemUpdate
             var values = [...data.dataSets[0].values]
             const lastItem = values.pop()
-            const itemUpdate = { ...lastItem, shadowH, close }
+            let close = Math.random() * (lastItem.shadowH - lastItem.shadowL) + lastItem.shadowL
+            const itemUpdate = { ...lastItem, close }
             values.push(itemUpdate)
+            const maxLineLimit = Math.max(...Object.values(values).map(item => item.shadowH))
+            const minLineLimit = Math.min(...Object.values(values).map(item => item.shadowL))
 
             setData({
                 ...data,
@@ -73,34 +68,21 @@ const CandleScreen = () => {
                     values
                 }]
             })
-
-            // setXAxis({
-            //     ...xAxis,
-            //     limitLines: _.times( data.dataSets[0].values.length / 5, (i) => {
-            //         return {
-            //             limit: 5 * (i + 1) + 0.5,
-            //             lineColor: processColor('green'),
-            //             lineWidth: 1.5,
-            //             label: (i + 1).toString()
-            //         }
-            //     })
-            // })
-
             setYAxis({
                 ...yAxis,
                 left: {
                     limitLines: [{
-                      limit: 112.4,
-                      lineColor: processColor('red'),
-                      lineDashPhase: 2,
-                      lineDashLengths: [10,20]
+                        limit: maxLineLimit,
+                        lineColor: processColor('green'),
+                        lineDashPhase: 1,
+                        lineDashLengths: [5, 5]
                     }, {
-                      limit: 89.47,
-                      lineColor: processColor('red'),
-                      lineDashPhase: 4,
-                      lineDashLengths: [10,20]
+                        limit: minLineLimit,
+                        lineColor: processColor('green'),
+                        lineDashPhase: 1,
+                        lineDashLengths: [5, 5]
                     }]
-                  }
+                }
             })
 
         }, 1000)
@@ -108,29 +90,17 @@ const CandleScreen = () => {
         return () => clearInterval(interval)
     }, [data])
 
-    */
-
     useEffect(() => {
         getData()
-        // const tO = setTimeout(() => {
-        //     let shadowH = Math.random() * (101 - 98) + 98
-        //     let close = Math.random() * (100 - 99) + 99
-
-        //     var values = [...data.dataSets[0].values]
-        //     const newItem = { x: 48, shadowH, shadowL: 98.5, open: 98.6, close }
-        //     values.push(newItem)
-
-        //     setData({
-        //         ...data,
-        //         dataSets: [{
-        //             ...data.dataSets[0],
-        //             values
-        //         }]
-        //     })
-        // }, 2000)
-        // return () => clearTimeout(tO)
+        const tO = setInterval(() => {
+            if (isScrolling.current == false) {
+                console.log('im calling');
+                getData()
+            }
+        }, 1000)
+        return () => clearInterval(tO)
     }, [])
-    
+
     const getIndexOfDay = day => {
         return moment(day, DATE_FORMAT).diff(era, 'days')
     }
@@ -155,6 +125,7 @@ const CandleScreen = () => {
 
         if (nativeEvent.action == 'chartTranslated') {
             let { left, right, centerX } = nativeEvent
+            isScrolling.current = true
             if (!isLoading.current) {
                 if (xMin.current > left - distanceToLoadMore || right + distanceToLoadMore > xMax.current) {
                     isLoading.current = true
@@ -164,13 +135,12 @@ const CandleScreen = () => {
                     let from = era.clone().add(fromIndex, 'minutes').format(DATE_FORMAT)
                     let to = era.clone().add(toIndex, 'minutes').format(DATE_FORMAT)
 
-                    // isScroll = !(getIndexOfSeconds(to) < right)
+                    isScrolling.current = !((getIndexOfMinutes(to) - right <= 10))
+                    console.log(isScrolling.current)
 
                     mockLoadData(from, to).then((data) => {
-
-                        let newData = generateNewData(from, to, data)
-                        refChart.current.setDataAndLockIndex(newData.combinedData.candleData)
-
+                        let { candleData } = generateNewData(from, to, data).combinedData
+                        refChart.current.setDataAndLockIndex(candleData)
                         isLoading.current = false
                     })
                 }
@@ -233,7 +203,8 @@ const CandleScreen = () => {
             shadowL: e.shadowL,
             open: e.open,
             close: e.close,
-            date: e.date
+            date: e.date,
+            marker: e.date + ''
         }))
         var ma5Data = data.map(e => ({ x: getIndexOfMinutes(e.date), y: e.ma5 }))
         var ma15Data = data.map(e => ({ x: getIndexOfMinutes(e.date), y: e.ma15 }))
@@ -319,21 +290,27 @@ const CandleScreen = () => {
     const getData = () => {
         let today = moment(moment().format(DATE_FORMAT), DATE_FORMAT).format(DATE_FORMAT)
         let start = era.format(DATE_FORMAT)
-        
+
         let axisMinimum = -0.5
-        let axisMaximum = getIndexOfMinutes(today) + 0.5
-
-        console.log(getIndexOfMinutes(today));
-
+        let axisMaximum = (getIndexOfMinutes(today) + 0.5)
 
         mockLoadData(start, today)
             .then(data => {
-                stateZoom.current =  stateZoom.current ?? { scaleX: 2, scaleY: 1, xValue: getIndexOfMinutes(today) - 5, yValue: 0, axisDependency: 'RIGHT' }
+                stateZoom.current = stateZoom.current ?? { scaleX: 2, scaleY: 1, xValue: getIndexOfMinutes(today) - 5, yValue: 0, axisDependency: 'RIGHT' }
                 const { candleData } = generateNewData(start, today, data).combinedData
-                setData(candleData)
+                const priceData = candleData.dataSets[0].values
+                const valueFormatter = []
+                priceData.forEach((item, index) => {
+                    valueFormatter.push(moment(item.date).format('HH:mm'))
+                })
+                const { x } = priceData[priceData.length - 1]
                 setZoom(stateZoom.current)
-                setXAxis({  ...xAxis, axisMinimum, axisMaximum  })
-                setYAxis({  ...yAxis, axisMinimum, axisMaximum  })
+                setData(candleData)
+                setXAxis({ ...xAxis, valueFormatter, axisMinimum, axisMaximum })
+                // setYAxis({ ...yAxis, axisMinimum, axisMaximum })
+                if (isScrolling.current == false) {
+                    refChart.current.moveViewToX(x)
+                }
             })
     }
 
@@ -343,11 +320,11 @@ const CandleScreen = () => {
             <CandleStickChart
                 ref={refChart}
                 group="stock"
-                    identifier="price"
+                identifier="price"
                 style={styles.chart}
                 data={data}
                 marker={marker}
-                visibleRange={{x: {min: 1, max: 100}}}
+                visibleRange={{ x: { min: 1, max: 30 } }}
                 chartDescription={{ text: 'CandleStick' }}
                 legend={legend}
                 xAxis={xAxis}
@@ -355,7 +332,7 @@ const CandleScreen = () => {
                 syncX={true}
                 syncY={false}
                 maxVisibleValueCount={16}
-                autoScaleMinMaxEnabled={true}
+                autoScaleMinMaxEnabled={false}
                 zoom={zoom}
                 onSelect={handleSelect}
                 onChange={handleOnchange}
