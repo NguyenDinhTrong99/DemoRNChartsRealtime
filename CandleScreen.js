@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, processColor } from 'react-native'
-import { CandleStickChart } from 'react-native-charts-wrapper';
-import moment from 'moment';
+import { CandleStickChart } from 'react-native-charts-wrapper'
+import moment from 'moment'
+import _ from 'lodash'
+
+const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
+const era = moment(moment().format('YYYY-MM-DD ') + '00:00:00', DATE_FORMAT)
+const distanceToLoadMore = 10
+const pageSize = 60
+const maxRow = 700
+
 const CandleScreen = () => {
 
     const [legend, setLegend] = useState({
@@ -11,108 +19,51 @@ const CandleScreen = () => {
         wordWrapEnabled: true
     })
 
-    const [data, setData] = useState({
-        dataSets: [{
-            values: [
-                { x: 0, shadowH: 101.76, shadowL: 100.4, open: 100.78, close: 101.03 },
-                { x: 1, shadowH: 101.58, shadowL: 100.27, open: 101.31, close: 101.12 },
-                { x: 2, shadowH: 102.24, shadowL: 100.15, open: 101.41, close: 101.17 },
-                { x: 3, shadowH: 102.28, shadowL: 101.5, open: 102.24, close: 102.23 },
-                { x: 4, shadowH: 102.91, shadowL: 101.78, open: 101.91, close: 102.52 },
-                { x: 5, shadowH: 105.18, shadowL: 103.85, open: 103.96, close: 104.58 },
-                { x: 6, shadowH: 106.31, shadowL: 104.59, open: 104.61, close: 105.97 },
-                { x: 7, shadowH: 106.47, shadowL: 104.96, open: 105.52, close: 105.8 },
-                { x: 8, shadowH: 106.5, shadowL: 105.19, open: 106.34, close: 105.92 },
-                { x: 9, shadowH: 107.65, shadowL: 105.1401, open: 105.93, close: 105.91 },
-                { x: 10, shadowH: 107.29, shadowL: 105.21, open: 105.25, close: 106.72 },
-                { x: 11, shadowH: 107.07, shadowL: 105.9, open: 106.48, close: 106.13 },
-                { x: 12, shadowH: 106.25, shadowL: 104.89, open: 105.47, close: 105.67 },
-                { x: 13, shadowH: 106.19, shadowL: 105.06, open: 106, close: 105.19 },
-                { x: 14, shadowH: 107.79, shadowL: 104.88, open: 104.89, close: 107.7 },
-                { x: 15, shadowH: 110.42, shadowL: 108.6, open: 108.65, close: 109.56 },
-                { x: 16, shadowH: 109.9, shadowL: 108.88, open: 109.72, close: 108.99 },
-                { x: 17, shadowH: 110, shadowL: 108.2, open: 108.78, close: 109.99 },
-                { x: 18, shadowH: 112.19, shadowL: 110.27, open: 110.42, close: 111.08 },
-                { x: 19, shadowH: 110.73, shadowL: 109.42, open: 109.51, close: 109.81 },
-                { x: 20, shadowH: 110.98, shadowL: 109.2, open: 110.23, close: 110.96 },
-                { x: 21, shadowH: 110.42, shadowL: 108.121, open: 109.95, close: 108.54 },
-                { x: 22, shadowH: 109.77, shadowL: 108.17, open: 108.91, close: 108.66 },
-                { x: 23, shadowH: 110.61, shadowL: 108.83, open: 108.97, close: 109.04 },
-                { x: 24, shadowH: 110.5, shadowL: 108.66, open: 109.34, close: 110.44 },
-                { x: 25, shadowH: 112.34, shadowL: 110.8, open: 110.8, close: 112.0192 },
-                { x: 26, shadowH: 112.39, shadowL: 111.33, open: 111.62, close: 112.1 },
-                { x: 27, shadowH: 112.3, shadowL: 109.73, open: 112.11, close: 109.85 },
-                { x: 28, shadowH: 108.95, shadowL: 106.94, open: 108.89, close: 107.48 },
-                { x: 29, shadowH: 108, shadowL: 106.23, open: 107.88, close: 106.91 },
-                { x: 30, shadowH: 108.09, shadowL: 106.06, open: 106.64, close: 107.13 },
-                { x: 31, shadowH: 106.93, shadowL: 105.52, open: 106.93, close: 105.97 },
-                { x: 32, shadowH: 106.48, shadowL: 104.62, open: 105.01, close: 105.68 },
-                { x: 33, shadowH: 105.65, shadowL: 104.51, open: 105, close: 105.08 },
-                { x: 34, shadowH: 105.3, shadowL: 103.91, open: 103.91, close: 104.35 },
-                { x: 35, shadowH: 98.71, shadowL: 95.68, open: 96, close: 97.82 },
-                { x: 36, shadowH: 97.88, shadowL: 94.25, open: 97.61, close: 94.8075 },
-                { x: 37, shadowH: 94.72, shadowL: 92.51, open: 93.99, close: 93.75 },
-                { x: 38, shadowH: 94.08, shadowL: 92.4, open: 93.965, close: 93.65 },
-                { x: 39, shadowH: 95.74, shadowL: 93.68, open: 94.2, close: 95.18 },
-                { x: 40, shadowH: 95.9, shadowL: 93.82, open: 95.2, close: 94.19 },
-                { x: 41, shadowH: 94.07, shadowL: 92.68, open: 94, close: 93.24 },
-                { x: 42, shadowH: 93.45, shadowL: 91.85, open: 93.37, close: 92.72 },
-                { x: 43, shadowH: 93.77, shadowL: 92.59, open: 93, close: 92.82 },
-                { x: 44, shadowH: 93.57, shadowL: 92.11, open: 93.33, close: 93.39 },
-                { x: 45, shadowH: 93.57, shadowL: 92.46, open: 93.48, close: 92.51 },
-                { x: 46, shadowH: 92.78, shadowL: 89.47, open: 92.72, close: 90.32 },
-                { x: 47, shadowH: 91.67, shadowL: 90, open: 90, close: 90.52 }
-            ],
-            label: 'AAPL',
-            config: {
-                highlightColor: processColor('darkgray'),
-
-                shadowColor: processColor('black'),
-                shadowWidth: 1,
-                shadowColorSameAsCandle: true,
-                increasingColor: processColor('#71BD6A'),
-                increasingPaintStyle: 'FILL',
-                decreasingColor: processColor('#D14B5A')
-            },
-            xAxis: {},
-            yAxis: {}
-        }],
-    })
+    const [data, setData] = useState()
 
     const [marker, setMarker] = useState({
         enabled: true,
         markerColor: processColor('#2c3e50'),
         textColor: processColor('white'),
     })
-    const [zoom, setZoom] = useState(0)
+    const [zoom, setZoom] = useState()
     const [xAxis, setXAxis] = useState({
+        granularity: 1,
+        granularityEnabled: true,
         position: 'BOTTOM',
         valueFormatter: 'date',
         valueFormatterPattern: 'HH:mm',
         since: moment().valueOf(),
-        timeUnit: 'MINUTES'
+        timeUnit: 'MINUTES',
+        textColor:  processColor('white')
     })
     const [yAxis, setYAxis] = useState({
-        left: { enabled: false }
+        left: { enabled: true
+        },
+        right: { textColor: processColor('white')},
     })
 
     const refChart = useRef()
+    const xMax = useRef()
+    const xMin = useRef()
+    const isLoading = useRef(false)
+    const stateZoom = useRef(undefined)
 
-    const handleSelect = event => {
-        console.log(event)
-    }
+    /*
 
     useEffect(() => {
         const interval = setInterval(() => {
 
-            let shadowH = Math.random() * (94 - 90) + 90
-            let close = Math.random() * (92 - 90) + 90
+            // let shadowH = Math.random() * (94 - 90) + 90
+            // let close = Math.random() * (92 - 90) + 90
+            let shadowH = Math.random() * (101 - 98) + 98
+            let close = Math.random() * (100 - 99) + 99
 
-            const itemUpdate = { x: 47, shadowH, shadowL: 90, open: 90, close }
             // var values = [...data.dataSets[0].values]
             // values[values.length - 1] = itemUpdate
             var values = [...data.dataSets[0].values]
-            values.pop()
+            const lastItem = values.pop()
+            const itemUpdate = { ...lastItem, shadowH, close }
             values.push(itemUpdate)
 
             setData({
@@ -123,29 +74,291 @@ const CandleScreen = () => {
                 }]
             })
 
+            // setXAxis({
+            //     ...xAxis,
+            //     limitLines: _.times( data.dataSets[0].values.length / 5, (i) => {
+            //         return {
+            //             limit: 5 * (i + 1) + 0.5,
+            //             lineColor: processColor('green'),
+            //             lineWidth: 1.5,
+            //             label: (i + 1).toString()
+            //         }
+            //     })
+            // })
+
+            setYAxis({
+                ...yAxis,
+                left: {
+                    limitLines: [{
+                      limit: 112.4,
+                      lineColor: processColor('red'),
+                      lineDashPhase: 2,
+                      lineDashLengths: [10,20]
+                    }, {
+                      limit: 89.47,
+                      lineColor: processColor('red'),
+                      lineDashPhase: 4,
+                      lineDashLengths: [10,20]
+                    }]
+                  }
+            })
+
         }, 1000)
 
         return () => clearInterval(interval)
+    }, [data])
+
+    */
+
+    useEffect(() => {
+        getData()
+        // const tO = setTimeout(() => {
+        //     let shadowH = Math.random() * (101 - 98) + 98
+        //     let close = Math.random() * (100 - 99) + 99
+
+        //     var values = [...data.dataSets[0].values]
+        //     const newItem = { x: 48, shadowH, shadowL: 98.5, open: 98.6, close }
+        //     values.push(newItem)
+
+        //     setData({
+        //         ...data,
+        //         dataSets: [{
+        //             ...data.dataSets[0],
+        //             values
+        //         }]
+        //     })
+        // }, 2000)
+        // return () => clearTimeout(tO)
     }, [])
+    
+    const getIndexOfDay = day => {
+        return moment(day, DATE_FORMAT).diff(era, 'days')
+    }
+
+    const getIndexOfMinutes = day => {
+        return moment(day, DATE_FORMAT).diff(era, 'minutes')
+    }
+
+    const handleSelect = event => {
+    }
+
+    const handleOnchange = event => {
+        const nativeEvent = event.nativeEvent
+
+        if (nativeEvent.action == 'chartScaled') {
+            const { scaleX, scaleY } = nativeEvent
+            stateZoom.current = {
+                ...stateZoom.current,
+                scaleX, scaleY
+            }
+        }
+
+        if (nativeEvent.action == 'chartTranslated') {
+            let { left, right, centerX } = nativeEvent
+            if (!isLoading.current) {
+                if (xMin.current > left - distanceToLoadMore || right + distanceToLoadMore > xMax.current) {
+                    isLoading.current = true
+                    let toIndex = Math.min(centerX + pageSize, moment(moment(), DATE_FORMAT).diff(era, 'minutes'));
+                    let fromIndex = toIndex - 2 * pageSize
+
+                    let from = era.clone().add(fromIndex, 'minutes').format(DATE_FORMAT)
+                    let to = era.clone().add(toIndex, 'minutes').format(DATE_FORMAT)
+
+                    // isScroll = !(getIndexOfSeconds(to) < right)
+
+                    mockLoadData(from, to).then((data) => {
+
+                        let newData = generateNewData(from, to, data)
+                        refChart.current.setDataAndLockIndex(newData.combinedData.candleData)
+
+                        isLoading.current = false
+                    })
+                }
+            }
+        }
+    }
+
+    const mockLoadData = (from, to) => {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                let fromIndex = getIndexOfMinutes(from)
+                let toIndex = getIndexOfMinutes(to)
+
+                xMin.current = fromIndex
+                xMax.current = toIndex
+
+                resolve(
+                    Array.from(new Array(parseInt(toIndex - fromIndex)), (val, index) => {
+
+                        let x = fromIndex + index;
+                        let y = Math.abs(100 * Math.sin(0.1 * x))
+
+                        let date = era.clone().add(x, 'minutes').format(DATE_FORMAT)
+                        if (x % 2 == 0) {
+                            return {
+                                date: date,
+
+                                shadowH: y + 220,
+                                shadowL: y + 200,
+                                open: y + 215,
+                                close: y + 205,
+
+                                ma5: y + 170,
+                                ma15: y + 150,
+                                volume: Math.abs(100 * Math.cos(0.1 * x)) + 100
+                            }
+                        } else {
+                            return {
+                                date: date,
+
+                                shadowH: y + 220,
+                                shadowL: y + 200,
+                                open: y + 205,
+                                close: y + 215,
+
+                                ma5: y + 170,
+                                ma15: y + 150,
+                                volume: Math.abs(100 * Math.cos(0.1 * x)) + 100
+                            }
+                        }
+                    }).filter(x => x))
+            }, 50)
+        })
+    }
+
+    const generateNewData = (from, to, data) => {
+        var priceData = data.map(e => ({
+            x: getIndexOfMinutes(e.date),
+            shadowH: e.shadowH,
+            shadowL: e.shadowL,
+            open: e.open,
+            close: e.close,
+            date: e.date
+        }))
+        var ma5Data = data.map(e => ({ x: getIndexOfMinutes(e.date), y: e.ma5 }))
+        var ma15Data = data.map(e => ({ x: getIndexOfMinutes(e.date), y: e.ma15 }))
+        var volumeData = data.map(e => ({ x: getIndexOfMinutes(e.date), y: e.volume }))
+
+        // limit row render 
+        // const priceLength = priceData.length
+        // priceData = priceLength > maxRow ? priceData.slice((priceLength - maxRow)) : priceData
+
+        // const ma5Length = ma5Data.length
+        // ma5Data = ma5Length > maxRow ? ma5Data.slice((ma5Length - maxRow)) : ma5Data
+
+        // const ma15Length = ma15Data.length
+        // ma15Data = ma15Length > maxRow ? ma15Data.slice((ma15Length - maxRow)) : ma15Data
+
+        // const volumeLength = volumeData.length
+        // volumeData = volumeLength > maxRow ? volumeData.slice((volumeLength - maxRow)) : volumeData
+
+        return {
+
+            combinedData: {
+                lineData: {
+                    dataSets: [{
+                        values: ma5Data,
+                        label: 'ma5',
+
+                        config: {
+                            drawValues: false,
+                            mode: "CUBIC_BEZIER",
+                            drawCircles: false,
+                            color: processColor('red')
+                        }
+                    }, {
+                        values: ma15Data,
+                        label: 'ma15',
+
+                        config: {
+                            drawValues: false,
+                            mode: "CUBIC_BEZIER",
+                            drawCircles: false,
+                            color: processColor('blue')
+                        }
+                    }],
+                },
+                candleData: {
+                    dataSets: [{
+                        values: priceData,
+                        label: 'price',
+
+                        config: {
+                            drawValues: false,
+                            highlightColor: processColor('darkgray'),
+                            shadowColor: processColor('black'),
+                            shadowWidth: 1,
+                            shadowColorSameAsCandle: true,
+                            increasingColor: processColor('#71BD6A'),
+                            increasingPaintStyle: 'FILL',
+                            decreasingColor: processColor('#D14B5A')
+                        }
+                    }],
+                }
+            },
+
+
+            volumeData: {
+                dataSets: [{
+
+                    values: volumeData,
+                    label: 'volume',
+                    config: {
+                        drawValues: false,
+                        colors: [processColor('red'), processColor('green')]
+                    }
+                }]
+
+            },
+
+
+        }
+
+    }
+
+    const getData = () => {
+        let today = moment(moment().format(DATE_FORMAT), DATE_FORMAT).format(DATE_FORMAT)
+        let start = era.format(DATE_FORMAT)
+        
+        let axisMinimum = -0.5
+        let axisMaximum = getIndexOfMinutes(today) + 0.5
+
+        console.log(getIndexOfMinutes(today));
+
+
+        mockLoadData(start, today)
+            .then(data => {
+                stateZoom.current =  stateZoom.current ?? { scaleX: 2, scaleY: 1, xValue: getIndexOfMinutes(today) - 5, yValue: 0, axisDependency: 'RIGHT' }
+                const { candleData } = generateNewData(start, today, data).combinedData
+                setData(candleData)
+                setZoom(stateZoom.current)
+                setXAxis({  ...xAxis, axisMinimum, axisMaximum  })
+                setYAxis({  ...yAxis, axisMinimum, axisMaximum  })
+            })
+    }
 
     return (
         <View style={styles.container}>
 
             <CandleStickChart
                 ref={refChart}
+                group="stock"
+                    identifier="price"
                 style={styles.chart}
                 data={data}
                 marker={marker}
+                visibleRange={{x: {min: 1, max: 100}}}
                 chartDescription={{ text: 'CandleStick' }}
                 legend={legend}
                 xAxis={xAxis}
                 yAxis={yAxis}
+                syncX={true}
+                syncY={false}
                 maxVisibleValueCount={16}
                 autoScaleMinMaxEnabled={true}
-                zoom={{ scaleX: 2, scaleY: 1, xValue: 400000, yValue: 1 }}
-                // zoom={{ scaleX: 15.41, scaleY: 1, xValue: 40, yValue: 916, axisDependency: 'LEFT' }}
+                zoom={zoom}
                 onSelect={handleSelect}
-                onChange={(event) => console.log(event.nativeEvent)}
+                onChange={handleOnchange}
             />
 
         </View>
@@ -154,7 +367,8 @@ const CandleScreen = () => {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1
+        flex: 1,
+        backgroundColor: 'black'
     },
     chart: {
         flex: 1
